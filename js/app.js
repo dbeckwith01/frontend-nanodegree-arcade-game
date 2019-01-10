@@ -2,6 +2,9 @@ const ENEMY_START_LOCATION_X = -101;
 const ENEMY_END_LOCATION_X = 505;
 const PLAYER_START_LOCATION_POINT_X = 202;
 const PLAYER_START_LOCATION_POINT_Y = 400;
+let score = 0;
+let lives = 3;
+let difficulty = 1;
 
 /* !!!!!! Enemy Class !!!!!! */
 class Enemy {
@@ -13,19 +16,23 @@ class Enemy {
   }
 
   static randomizeSpeed() {
-    return parseInt(Math.random() * 100) + 80;
+    return parseInt(Math.random() * 100) + 80 * difficulty;
   }
 
   // Move the enemy to the right across the canvas once it is off screen, send it back to the start with a new random speed
   update(dt) {
-    if (this.x < ENEMY_END_LOCATION_X) {
-      this.x = this.x + this.speed * dt;
+    if (lives > 0) {
+      if (this.x < ENEMY_END_LOCATION_X) {
+        this.x = this.x + this.speed * dt;
+      } else {
+        this.speed = Enemy.randomizeSpeed();
+        this.x = ENEMY_START_LOCATION_X;
+      }
+
+      this.checkCollision();
     } else {
-      this.speed = Enemy.randomizeSpeed();
       this.x = ENEMY_START_LOCATION_X;
     }
-
-    this.checkCollision();
   }
 
   // Draw the enemy on the screen, required method for game
@@ -36,8 +43,8 @@ class Enemy {
   // Check for collision. Used algorthm from https://developer.mozilla.org/en-US/docs/Games/Techniques/2D_collision_detection
   checkCollision() {
     // Set hitboxes for collision detection
-    var playerBox = { x: player.x, y: player.y, width: 60, height: 42 };
-    var enemyBox = { x: this.x, y: this.y, width: 50, height: 70 };
+    const playerBox = { x: player.x, y: player.y, width: 60, height: 42 };
+    const enemyBox = { x: this.x, y: this.y, width: 50, height: 70 };
     // Check for collisions, if playerBox intersects enemyBox, we have one
     if (
       playerBox.x < enemyBox.x + enemyBox.width &&
@@ -51,6 +58,10 @@ class Enemy {
   }
 
   collisionDetected() {
+    if (lives > 0) {
+      lives -= 1;
+    }
+    document.querySelector(".lives").innerText = `LIVES: ${lives}`;
     gameReset();
   }
 }
@@ -82,10 +93,10 @@ class Player {
         break;
       case "up":
         //TODO Fix this, it's not correct
-        if (this.y < 0) {
-          console.log("SUCCESS!!!");
-        } else {
+        if (this.y > 0) {
           this.y -= 83; //move up toward the water by ~half of one block height
+        } else {
+          gameLevelUp();
         }
         break;
       case "right":
@@ -102,14 +113,16 @@ class Player {
   }
 }
 
-/* !!!!!! Instantiate Object !!!!!! */
-var allEnemies = [];
+/* !!!!!! Instantiate Objects !!!!!! */
+const allEnemies = [];
 
-for (var i = 0; i < 3; i++) {
-  allEnemies.push(new Enemy(-101, 60 + 83 * i, Enemy.randomizeSpeed())); // place enemies off screen along 3 stone blocks at y locations 60, 145, and 228 with a random speed
+for (let i = 0; i < 3; i++) {
+  allEnemies.push(
+    new Enemy(ENEMY_START_LOCATION_X, 60 + 83 * i, Enemy.randomizeSpeed())
+  ); // place enemies off screen along 3 stone blocks at y locations 60, 145, and 228 with a random speed
 }
 
-var player = new Player(
+const player = new Player(
   PLAYER_START_LOCATION_POINT_X,
   PLAYER_START_LOCATION_POINT_Y
 );
@@ -118,10 +131,18 @@ const gameReset = () => {
   player.reset();
 };
 
+const gameLevelUp = () => {
+  score += 1;
+  difficulty += 1;
+  document.querySelector(".score").innerText = `SCORE: ${score}`;
+  document.querySelector(".difficulty").innerText = `DIFFICULTY: ${difficulty}`;
+  player.reset();
+};
+
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.
 document.addEventListener("keyup", function(e) {
-  var allowedKeys = {
+  const allowedKeys = {
     37: "left",
     38: "up",
     39: "right",
