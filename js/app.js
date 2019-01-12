@@ -2,9 +2,13 @@ const ENEMY_START_LOCATION_X = -101;
 const ENEMY_END_LOCATION_X = 505;
 const PLAYER_START_LOCATION_POINT_X = 202;
 const PLAYER_START_LOCATION_POINT_Y = 400;
+const START_DIFFICULTY = 1;
+const START_LIVES = 3;
+const START_SCORE = 0;
+
 let score = 0;
 let lives = 3;
-let difficulty = 1;
+let difficulty = START_DIFFICULTY;
 
 /* !!!!!! Enemy Class !!!!!! */
 class Enemy {
@@ -60,9 +64,12 @@ class Enemy {
   collisionDetected() {
     if (lives > 0) {
       lives -= 1;
+      document.querySelector(".lives").innerText = `LIVES: ${lives}`;
+      playerReset();
     }
-    document.querySelector(".lives").innerText = `LIVES: ${lives}`;
-    gameReset();
+    if (lives == 0) {
+      gameOver();
+    }
   }
 }
 /* !!!!!! Player Class !!!!!! */
@@ -85,30 +92,32 @@ class Player {
   }
 
   handleInput(allowedKey) {
-    switch (allowedKey) {
-      case "left":
-        if (this.x > 0) {
-          this.x -= 101; //move left one whole block width
-        }
-        break;
-      case "up":
-        //TODO Fix this, it's not correct
-        if (this.y > 0) {
-          this.y -= 83; //move up toward the water by ~half of one block height
-        } else {
-          gameLevelUp();
-        }
-        break;
-      case "right":
-        if (this.x < 404) {
-          this.x += 101; //move right one whole block width
-        }
-        break;
-      case "down":
-        if (this.y < 400) {
-          this.y += 83;
-        }
-        break;
+    if (lives > 0) {
+      switch (allowedKey) {
+        case "left":
+          if (this.x > 0) {
+            this.x -= 101; //move left one whole block width
+          }
+          break;
+        case "up":
+          //TODO Fix this, it's not correct
+          if (this.y > 0) {
+            this.y -= 83; //move up toward the water by ~half of one block height
+          } else {
+            gameLevelUp();
+          }
+          break;
+        case "right":
+          if (this.x < 404) {
+            this.x += 101; //move right one whole block width
+          }
+          break;
+        case "down":
+          if (this.y < 400) {
+            this.y += 83;
+          }
+          break;
+      }
     }
   }
 }
@@ -127,7 +136,23 @@ const player = new Player(
   PLAYER_START_LOCATION_POINT_Y
 );
 
+const gameOver = () => {
+  document.querySelector(".resetButton").classList.toggle("hidden");
+  document.querySelector(".resetButton").addEventListener("click", gameReset);
+};
+
 const gameReset = () => {
+  playerReset();
+  score = START_SCORE;
+  lives = START_LIVES;
+  difficulty = START_DIFFICULTY;
+  document.querySelector(".score").innerText = `SCORE: ${score}`;
+  document.querySelector(".lives").innerText = `LIVES: ${lives}`;
+  document.querySelector(".difficulty").innerText = `DIFFICULTY: ${difficulty}`;
+  document.querySelector(".resetButton").classList.toggle("hidden");
+};
+
+const playerReset = () => {
   player.reset();
 };
 
