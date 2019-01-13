@@ -10,11 +10,26 @@ let score = 0;
 let lives = 3;
 let difficulty = START_DIFFICULTY;
 
-/* !!!!!! Enemy Class !!!!!! */
-class Enemy {
-  constructor(x, y, speed) {
+/* !!!!!! Character Base Class !!!!!! */
+class Character {
+  constructor(x, y, sprite) {
     this.x = x;
     this.y = y;
+    this.sprite = "";
+  }
+
+  update(dt) {}
+
+  // Draw the enemy on the screen, required method for game
+  render() {
+    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+  }
+}
+
+/* !!!!!! Enemy Class !!!!!! */
+class Enemy extends Character {
+  constructor(x, y, speed) {
+    super(x, y);
     this.speed = speed;
     this.sprite = "images/enemy-bug.png";
   }
@@ -23,7 +38,7 @@ class Enemy {
     return parseInt(Math.random() * 100) + 80 * difficulty;
   }
 
-  // Move the enemy to the right across the canvas once it is off screen, send it back to the start with a new random speed
+  // Override update method, Move the enemy to the right across the canvas once it is off screen, send it back to the start with a new random speed
   update(dt) {
     if (lives > 0) {
       if (this.x < ENEMY_END_LOCATION_X) {
@@ -37,11 +52,6 @@ class Enemy {
     } else {
       this.x = ENEMY_START_LOCATION_X;
     }
-  }
-
-  // Draw the enemy on the screen, required method for game
-  render() {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
   }
 
   // Check for collision. Used algorthm from https://developer.mozilla.org/en-US/docs/Games/Techniques/2D_collision_detection
@@ -73,8 +83,9 @@ class Enemy {
   }
 }
 /* !!!!!! Player Class !!!!!! */
-class Player {
+class Player extends Character {
   constructor(x, y) {
+    super(x, y);
     this.x = x;
     this.y = y;
     this.sprite = "images/char-boy.png";
@@ -83,12 +94,6 @@ class Player {
   reset() {
     this.x = PLAYER_START_LOCATION_POINT_X;
     this.y = PLAYER_START_LOCATION_POINT_Y;
-  }
-
-  update(dt) {}
-
-  render() {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
   }
 
   handleInput(allowedKey) {
